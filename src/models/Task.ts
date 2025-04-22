@@ -1,5 +1,6 @@
-import mongoose, {Schema, Document, Types} from 'mongoose'
+import mongoose, {Schema, Document, Types, PopulatedDoc} from 'mongoose'
 import Note from './Note'
+import SubTask, { ISubTask } from './SubTasks'
 
 const taskStatus = {
     PENDING: 'pending',
@@ -21,6 +22,7 @@ export interface ITask extends Document {
         status: TaskStatus
     }[]
     notes: Types.ObjectId[]
+    subtasks: PopulatedDoc<ISubTask & Document>[]
 }
 
 export const TaskSchema : Schema = new Schema({
@@ -62,14 +64,22 @@ export const TaskSchema : Schema = new Schema({
             type: Types.ObjectId,
             ref: 'Note'
         }
+    ],
+    subtasks: [
+        {
+            type: Types.ObjectId,
+            ref: 'SubTask'
+        }
     ]
+    
 }, {timestamps: true})
 
 // Middleware
 TaskSchema.pre('deleteOne', {document: true}, async function() {
     const taskId = this._id
     if(!taskId) return
-    await Note.deleteMany({task: taskId})
+    await Note.deleteMany({ task: taskId })
+    await SubTask.deleteMany({ task: taskId })
 })
 
 const Task = mongoose.model<ITask>('Task', TaskSchema)

@@ -8,6 +8,7 @@ import { hasAuthorization, taskBelongsToProject, taskExists } from '../middlewar
 import { authenticate } from '../middleware/auth'
 import { TeamMemberController } from '../controllers/TeamController'
 import { NoteController } from '../controllers/NoteController'
+import { noteBelongsToTaks, noteExist } from '../middleware/note'
 
 const router = Router()
 
@@ -24,7 +25,7 @@ router.post('/',
     ProjectController.createProject
 )
 
-router.get('/',  ProjectController.getAllProjects)
+router.get('/', ProjectController.getAllProjects)
 
 router.get('/:id',
     param('id').isMongoId().withMessage('ID no válido'),
@@ -98,7 +99,7 @@ router.delete('/:projectId/tasks/:taskId',
     TaskController.deleteTask
 )
 
-router.post('/:projectId/tasks/:taskId/status', 
+router.post('/:projectId/tasks/:taskId/status',
     param('taskId').isMongoId().withMessage('ID no válido'),
     body('status')
         .notEmpty().withMessage('El estado es obligatorio'),
@@ -132,6 +133,10 @@ router.delete('/:projectId/team/:userId',
 )
 
 /** Routes for Notes */
+
+router.param('noteId', noteExist)
+router.param('noteId', noteBelongsToTaks)
+
 router.post('/:projectId/tasks/:taskId/notes',
     body('content')
         .notEmpty().withMessage('El Contenido de la nota es obligatorio'),
@@ -142,11 +147,24 @@ router.post('/:projectId/tasks/:taskId/notes',
 router.get('/:projectId/tasks/:taskId/notes',
     NoteController.getTaskNotes
 )
+router.get('/:projectId/tasks/:taskId/notes/:noteId',
+    hasAuthorization,
+    param('noteId').isMongoId().withMessage('ID No Válido'),
+    handleInputErrors,
+    NoteController.getNote
+)
 
 router.delete('/:projectId/tasks/:taskId/notes/:noteId',
     param('noteId').isMongoId().withMessage('ID No Válido'),
     handleInputErrors,
     NoteController.deleteNote
+)
+router.put('/:projectId/tasks/:taskId/notes/:noteId',
+    param('noteId').isMongoId().withMessage('ID No Válido'),
+    body('content')
+        .notEmpty().withMessage('El Contenido de la nota es obligatorio'),
+    handleInputErrors,
+    NoteController.updateNote
 )
 
 export default router

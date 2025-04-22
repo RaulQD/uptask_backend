@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document, Types } from "mongoose" 
+import mongoose, { Schema, Document, Types } from "mongoose"
 
 export interface IUser extends Document {
     _id: Types.ObjectId
@@ -9,7 +9,7 @@ export interface IUser extends Document {
 }
 
 const userSchema: Schema = new Schema({
-    email : {
+    email: {
         type: String,
         required: true,
         lowercase: true,
