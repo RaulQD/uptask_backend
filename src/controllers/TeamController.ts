@@ -68,6 +68,11 @@ export class TeamMemberController {
             const error = new Error('Usuario no Encontrado')
             return res.status(404).json({ error: error.message })
         }
+        //VALIDAR QUE EL USUARIO NO SEA EL MANAGER DEL PROYECTO
+        if (req.project.manager.toString() === user.id.toString()) {
+            const error = new Error('El creador del proyecto no puede agregarse a sí mismo como colaborador.')
+            return res.status(409).json({ error: error.message })
+        }
 
         if (req.project.team.some(team => team.toString() === user.id.toString())) {
             const error = new Error('El usuario ya existe en el proyecto')
