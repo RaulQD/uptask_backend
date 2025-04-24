@@ -21,7 +21,15 @@ router.post('/:taskId/subtasks',
 router.get('/:taskId/subtasks',
   handleInputErrors,
   taskExists,
-  SubTaskController.getSubTask);
+  SubTaskController.getSubTasks);
+router.get('/:taskId/subtasks/:subTaskId',
+  param('taskId').isMongoId().withMessage('ID de tarea no válido.'),
+  param('subTaskId').isMongoId().withMessage('ID de subtask no válido.'),
+  handleInputErrors,
+  taskExists,
+  subTaskExist,
+  SubTaskController.getSubTaskById
+)
 router.get('/:taskId/subtask', TaskController.getTaskWithSubtask);
 router.patch('/:taskId/subtasks/:subTaskId/completed',
   param('taskId').isMongoId().withMessage('ID de tarea no válido.'),
@@ -31,7 +39,21 @@ router.patch('/:taskId/subtasks/:subTaskId/completed',
   taskExists,
   subTaskExist,
   SubTaskController.updateSubTaskStatus)
-
+router.put('/:taskId/subtasks/:subTaskId',
+  body('name').notEmpty().withMessage('El nombre de la subtarea es obligatorio.'),
+  param('taskId').isMongoId().withMessage('ID de tarea no válido'),
+  param('subTaskId').isMongoId().withMessage('ID de subtask no válido'),
+  handleInputErrors,
+  taskExists,
+  subTaskExist,
+  SubTaskController.updateSubTask
+)
+router.delete('/:taskId/subtasks/all',
+  param('taskId').isMongoId().withMessage('ID de tarea no válido.'),
+  handleInputErrors,
+  taskExists,
+  SubTaskController.deleteAllSubTaksByTask
+)
 router.delete('/:taskId/subtasks/:subTaskId',
   param('taskId').isMongoId().withMessage('ID de tarea no válido.'),
   param('subTaskId').isMongoId().withMessage('ID de subtask no válido.'),
