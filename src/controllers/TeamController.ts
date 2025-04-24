@@ -1,7 +1,10 @@
 import type { Request, Response } from 'express'
-import User from '../models/User'
+import User, { IUser } from '../models/User'
 import Project from '../models/Project'
-
+interface SearchQuery {
+    name?: { $regex: string; $options: string };
+    email?: { $regex: string; $options: string };
+}
 export class TeamMemberController {
     static findMemberByEmail = async (req: Request, res: Response) => {
         const { email } = req.body
@@ -15,6 +18,39 @@ export class TeamMemberController {
         res.json(user)
     }
 
+    static findMemberByEmailAndName = async (req: Request<{}, {}, IUser>, res: Response) => {
+        try {
+            const { email, name } = req.body
+            const searchQuery: SearchQuery = {}
+            if (email) {
+                searchQuery.email = { $regex: email, $options: 'i' }
+            }
+            if (name) {
+                searchQuery.name = { $regex: name, $options: 'i' }
+            }
+            // Si no se proporcionaron parámetros de búsqueda, devolver un mensaje apropiado
+            if (Object.keys(searchQuery).length === 0) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Se requiere al menos un parámetro de búsqueda (nombre o correo)'
+                });
+            }
+            const members = await User.find(searchQuery).select('id email name createdAt')
+            if (members.length === 0) {
+                const error = new Error('No se encontraron usuarios con los criterios proporcionados.')
+                return res.status(404).json({ success: false, error: error.message })
+            }
+
+            return res.status(200).json(members)
+        } catch (error) {
+            console.error('Error al buscar usuarios:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Error al buscar usuarios',
+                error: error instanceof Error ? error.message : 'Error desconocido'
+            });
+        }
+    }
     static getProjecTeam = async (req: Request, res: Response) => {
         const project = await Project.findById(req.project.id).populate({
             path: 'team',

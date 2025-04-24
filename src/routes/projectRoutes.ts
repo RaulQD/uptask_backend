@@ -108,10 +108,17 @@ router.post('/:projectId/tasks/:taskId/status',
 )
 /** Routes for teams */
 router.post('/:projectId/team/find',
+    body('name')
+        .optional()
+        .isString().withMessage('El Nombre no es válido')
+        .trim()
+        .isLength({ min: 2 }).withMessage('El nombre debe tener al menos 2 caracteres'),
     body('email')
-        .isEmail().toLowerCase().withMessage('E-mail no válido'),
+        .optional()
+        .isEmail().toLowerCase().withMessage('E-mail no válido')
+        .normalizeEmail(),
     handleInputErrors,
-    TeamMemberController.findMemberByEmail
+    TeamMemberController.findMemberByEmailAndName
 )
 
 router.get('/:projectId/team',
