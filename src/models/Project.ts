@@ -2,6 +2,7 @@ import mongoose, {Schema, Document, PopulatedDoc, Types} from 'mongoose'
 import Task, { ITask } from './Task'
 import { IUser } from './User'
 import Note from './Note'
+import SubTask from './SubTasks'
 
 export interface IProject extends Document {
     projectName: string
@@ -53,9 +54,9 @@ ProjectSchema.pre('deleteOne', {document: true}, async function() {
 
     const tasks = await Task.find({ project: projectId })
     for(const task of tasks) {
-        await Note.deleteMany({ task: task.id})
+        await Note.deleteMany({ task: task.id })
+        await SubTask.deleteMany({ task: task.id })
     }
-
     await Task.deleteMany({project: projectId})
 })
 
